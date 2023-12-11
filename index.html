@@ -4,7 +4,24 @@
   <meta charset="UTF-8">
   <title>CodePen - Christmas Tree and Snow</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
-<link rel="stylesheet" href="/src/style.css">
+<style>
+  @import url("https://fonts.googleapis.com/css?family=Great+Vibes|Kaushan+Script");
+body {
+  margin: 0;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  color: white;
+  width: 100%;
+  text-align: center;
+  padding: 5px;
+  font-family: "Avenir", "Helvetica";
+}
+</style>
 
 </head>
 <body>
@@ -12,7 +29,120 @@
 <canvas id="canvas"></canvas>
 <div class="overlay"></div>
 <!-- partial -->
-  <script  src="/src/script.js"></script>
+  <script>
+    
+var treeParticles = [];
+var treeColors = ['#199642', '#E44822', '#40B8E2', '#F7D231'];
+
+function drawTreeFrame() {
+  for (var i = 0; i < treeParticles.length; i++) {
+    treeParticles[i].draw(context);
+    treeParticles[i].radius = 1 + Math.random() * 3;
+  }
+
+  if (treeParticles.length > 0) {
+    drawStar(centerX, screenHeight * .2, 5, 20, 10);
+  }
+}
+
+function getPixelData(imageData, x, y) {
+  let basePosition = (screenWidth * y + x) * 4;
+  return {
+    r: imageData.data[basePosition],
+    g: imageData.data[basePosition + 1],
+    b: imageData.data[basePosition + 2],
+    a: imageData.data[basePosition + 3] };
+
+}
+
+function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+  var rot = Math.PI / 2 * 3;
+  var x = cx;
+  var y = cy;
+  var step = Math.PI / spikes;
+
+  context.beginPath();
+  context.moveTo(cx, cy - outerRadius);
+  for (i = 0; i < spikes; i++) {
+    x = cx + Math.cos(rot) * outerRadius;
+    y = cy + Math.sin(rot) * outerRadius;
+    context.lineTo(x, y);
+    rot += step;
+
+    x = cx + Math.cos(rot) * innerRadius;
+    y = cy + Math.sin(rot) * innerRadius;
+    context.lineTo(x, y);
+    rot += step;
+  }
+  context.lineTo(cx, cy - outerRadius);
+  context.closePath();
+  context.lineWidth = 5;
+  context.strokeStyle = 'yellow';
+  context.stroke();
+  context.fillStyle = 'lightyellow';
+  context.fill();
+}
+
+function initTree(text) {
+  context.clearRect(0, 0, screenWidth, screenHeight);
+
+  context.moveTo(centerX, screenHeight * .2);
+  context.lineTo(centerX - 100, centerY + 100);
+  context.lineTo(centerX + 100, centerY + 100);
+  context.fill();
+
+  var imageData = context.getImageData(0, 0, screenWidth, screenHeight);
+
+  context.clearRect(0, 0, screenWidth, screenHeight);
+
+  treeParticles.length = 0;
+
+  for (var i = 0; i < screenWidth; i += 10) {
+    for (j = 0; j < screenHeight; j += 10) {
+
+      let pixelData = getPixelData(imageData, i, j);
+
+      if (pixelData.a > 0) {
+        let particle = new Particle(i, j);
+        particle.color = treeColors[Math.floor(Math.random() * 5)];
+        particle.radius = 1 + Math.random() * 3;
+        treeParticles.push(particle);
+      }
+    }
+  }
+}
+
+
+//let canvas = document.querySelector('#canvas');
+let context = canvas.getContext('2d');
+let screenWidth = canvas.width = window.innerWidth;
+let screenHeight = canvas.height = window.innerHeight;
+
+var centerX = screenWidth * .5;
+var centerY = screenHeight * .5;
+
+drawFrame();
+function drawFrame() {
+  context.clearRect(0, 0, screenWidth, screenHeight);
+
+  context.fillStyle = "black";
+  context.fillRect(0, 0, screenWidth, screenHeight);
+
+  context.fillStyle = "white";
+  context.font = "bold 50px Kaushan Script";
+  context.textAlign = "center";
+  context.fillText("Merry Christmas", centerX, screenHeight * .8);
+
+  drawTreeFrame();
+  drawSnowFrame();
+  requestAnimationFrame(drawFrame);
+}
+
+initTree('hello world');
+setInterval(() => {
+  createSnowParticles();
+}, 100);
+  </script>
 
 </body>
 </html>
